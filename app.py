@@ -10,7 +10,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 api = Api(app, title="Weather API", version="1.0")
 
-# Models
+# Database Models
 class Weather(db.Model):
     __tablename__ = "weather"
     station_id = db.Column(db.String, primary_key=True)
@@ -60,14 +60,13 @@ yield_model = api.model("Yield", {
     "total_yield": fields.Integer,
 })
 
-
-
 # API Endpoints
 @api.route("/api/weather")
 class WeatherAPI(Resource):
     @api.marshal_list_with(weather_model)
     def get(self):
         q = Weather.query
+
         station = request.args.get("station_id")
         start = request.args.get("start_date")
         end = request.args.get("end_date")
@@ -83,11 +82,13 @@ class WeatherAPI(Resource):
 
         return q.offset((page - 1) * size).limit(size).all()
 
+
 @api.route("/api/weather/stats")
 class StatsAPI(Resource):
     @api.marshal_list_with(stats_model)
     def get(self):
         q = WeatherStats.query
+
         station = request.args.get("station_id")
         year = request.args.get("year")
         page = int(request.args.get("page", 1))
@@ -100,12 +101,13 @@ class StatsAPI(Resource):
 
         return q.offset((page - 1) * size).limit(size).all()
 
+
 @api.route("/api/yield")
 class YieldAPI(Resource):
     @api.marshal_list_with(yield_model)
     def get(self):
         return Yield.query.order_by(Yield.year).all()
 
-# Run App
+# Run the app
 if __name__ == "__main__":
     app.run(debug=True)
